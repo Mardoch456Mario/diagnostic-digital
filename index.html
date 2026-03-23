@@ -233,7 +233,7 @@ main{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:90px 20px
 // =====================================================
 // DONNÉES & CONFIG
 // =====================================================
-const CALENDLY_URL = 'https://calendly.com/votre-lien'; // Remplacer par votre lien Calendly
+const CALENDLY_URL = 'https://calendly.com/mariodossousognon'; 
 
 const XP_LEVELS = [
   {min:0,max:200,label:'Débutant',color:'#8888aa'},
@@ -496,6 +496,7 @@ function computeResults(){
   renderResults(scores,global);
   goTo('results');
   launchConfetti();
+  sendEmailReport(scores, global, earnedBadges, totalXP);
 }
 
 function getLevel(s){
@@ -589,13 +590,63 @@ function openCalendly(){
   window.open(CALENDLY_URL,'_blank');
 }
 
+// =====================================================
+// EMAILJS CONFIG
+// =====================================================
+const EMAILJS_PUBLIC_KEY = 'gkQifsYyrvYfbQuhb';
+const EMAILJS_SERVICE_ID = 'service_diagnostic';
+const EMAILJS_TEMPLATE_ID = 'cwo1lro';
+
+function initEmailJS(){
+  if(typeof emailjs !== 'undefined'){
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+  }
+}
+
+function sendEmailReport(scores, global, badges, xp){
+  if(typeof emailjs === 'undefined'){
+    showNotif('📧 Email: connectez EmailJS pour activer','#ff9f43');
+    return;
+  }
+  const lv = getLevel(global);
+  const recoList = DIMS.filter(d=>scores[d.id]<70).map(d=>
+    d.name+': '+d.recos.slice(0,2).join(' | ')
+  ).join('\n');
+  
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_email: userData.email,
+    to_name: userData.name,
+    name: userData.name,
+    company: userData.company,
+    global_score: global,
+    level: lv.label,
+    score_strategy: scores.strategy || 0,
+    score_customer: scores.customer || 0,
+    score_data: scores.data || 0,
+    score_process: scores.process || 0,
+    score_culture: scores.culture || 0,
+    badges: [...badges].map(id => {
+      const b = ALL_BADGES.find(x=>x.id===id);
+      return b ? b.icon+' '+b.name : id;
+    }).join(', ') || 'Aucun badge',
+    xp_total: xp,
+    recommendations: recoList,
+    message: 'Diagnostic complété le '+new Date().toLocaleDateString('fr-FR')
+  }).then(()=>{
+    showNotif('✉️ Rapport envoyé à '+userData.email+' !','#00d68f');
+  }).catch(()=>{
+    showNotif('⚠️ Email non configuré — ajoutez votre service EmailJS','#ff9f43');
+  });
+}
+
 function downloadReport(){
-  showNotif('📄 Fonctionnalité PDF disponible avec EmailJS configuré','#ff9f43');
+  showNotif('📄 Rapport PDF — fonctionnalité disponible prochainement','#ff9f43');
 }
 
 // =====================================================
 // INIT
 // =====================================================
+initEmailJS();
 createStars();
 buildQuestionnaire();
 </script>
