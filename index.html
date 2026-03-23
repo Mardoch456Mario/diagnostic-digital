@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Digital Quest — Diagnostic Transformation Digitale</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+:root{--primary:#6c63ff;--primary-dark:#4c46b8;--secondary:#ff6584;--gold:#ffd700;--green:#00d68f;--orange:#ff9f43;--bg:#0d0d1a;--card:#1a1a2e;--card2:#16213e;--text:#e8e8f0;--text-muted:#8888aa;--border:#2a2a4a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;background:white;border-radius:50%;animation:twinkle linear infinite;}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(1);}50%{opacity:1;transform:scale(1.3);}}
+.hud{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,13,26,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.hud-brand{display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:800;}
+.hud-logo{width:32px;height:32px;border-radius:8px;object-fit:contain;}
+.hud-brand span{background:linear-gradient(135deg,#a78bfa,#6c63ff,#ff6584);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hud-stats{display:flex;gap:20px;align-items:center;}
+.hud-stat{display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:700;}
+.hud-stat .val{color:var(--gold);}
+.xp-bar-container{flex:1;min-width:120px;max-width:200px;}
+.xp-label{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-muted);margin-bottom:3px;}
+.xp-bar-bg{background:var(--border);border-radius:999px;height:6px;}
+.xp-bar-fill{height:6px;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .6s cubic-bezier(.34,1.56,.64,1);}
+main{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:90px 20px 60px;}
+.section{display:none;animation:fadeIn .4s ease;}
+.section.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;margin-bottom:20px;box-shadow:0 8px 40px rgba(0,0,0,.4);}
+.hero{text-align:center;padding:20px 0 10px;}
+.hero-logo{width:80px;height:80px;border-radius:20px;margin:0 auto 20px;display:block;object-fit:contain;filter:drop-shadow(0 0 20px rgba(108,99,255,.6));animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.4);border-radius:999px;padding:6px 16px;font-size:.8rem;font-weight:600;color:var(--primary);margin-bottom:20px;}
+.hero h1{font-size:2.4rem;font-weight:900;line-height:1.2;background:linear-gradient(135deg,#fff 0%,#a78bfa 40%,var(--secondary) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;}
+.hero p{font-size:1rem;color:var(--text-muted);line-height:1.7;max-width:540px;margin:0 auto 32px;}
+.mission-card{background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(255,101,132,.1));border:1px solid rgba(108,99,255,.3);border-radius:16px;padding:20px;margin-bottom:28px;display:flex;gap:16px;align-items:flex-start;}
+.mission-icon{font-size:2rem;flex-shrink:0;}
+.mission-text h4{font-size:.8rem;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:4px;}
+.mission-text p{font-size:.9rem;color:var(--text-muted);line-height:1.5;}
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-size:.85rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.form-group input,.form-group select{width:100%;padding:14px 18px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:.95rem;outline:none;transition:all .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.2);}
+.form-group select option{background:var(--card2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dim-header{display:flex;align-items:center;gap:16px;margin-bottom:28px;}
+.dim-orb{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;}
+.dim-header-info h2{font-size:1.4rem;font-weight:800;margin-bottom:4px;}
+.dim-header-info p{font-size:.85rem;color:var(--text-muted);}
+.mission-progress{background:var(--card2);border-radius:12px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+.mission-progress .prog-info{flex:1;}
+.prog-label{font-size:.75rem;color:var(--text-muted);margin-bottom:6px;}
+.prog-bar-bg{background:var(--border);border-radius:999px;height:8px;}
+.prog-bar-fill{height:8px;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .5s ease;}
+.prog-pts{font-size:1.2rem;font-weight:800;color:var(--gold);white-space:nowrap;}
+.question-block{background:var(--card2);border-radius:16px;padding:24px;margin-bottom:16px;border:1px solid var(--border);transition:border-color .3s;}
+.question-block.answered{border-color:rgba(0,214,143,.4);}
+.q-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px;}
+.q-num{background:rgba(108,99,255,.2);color:var(--primary);border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:700;white-space:nowrap;}
+.q-pts{font-size:.75rem;font-weight:700;color:var(--gold);white-space:nowrap;}
+.question-block p.q-text{font-size:.95rem;line-height:1.6;color:var(--text);}
+.options-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:16px;}
+.opt-btn{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:12px 4px;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.opt-btn .opt-val{font-size:1.2rem;font-weight:800;color:var(--text-muted);}
+.opt-btn .opt-lbl{font-size:.6rem;color:var(--text-muted);line-height:1.2;text-align:center;}
+.opt-btn:hover{border-color:var(--primary);transform:translateY(-2px);background:rgba(108,99,255,.1);}
+.opt-btn.selected{border-color:var(--primary);background:rgba(108,99,255,.2);transform:translateY(-2px);}
+.opt-btn.selected .opt-val{color:white;}
+.opt-btn.selected.high{border-color:var(--green);background:rgba(0,214,143,.15);}
+.opt-btn.selected.low{border-color:var(--secondary);background:rgba(255,101,132,.15);}
+.combo-toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:999;background:linear-gradient(135deg,var(--gold),#ff9f43);color:#1a1a00;font-weight:800;font-size:1.1rem;padding:10px 28px;border-radius:999px;box-shadow:0 4px 24px rgba(255,215,0,.5);opacity:0;pointer-events:none;transition:opacity .3s;}
+.combo-toast.show{opacity:1;animation:bounceIn .4s;}
+@keyframes bounceIn{0%{transform:translateX(-50%) scale(.5);}70%{transform:translateX(-50%) scale(1.1);}100%{transform:translateX(-50%) scale(1);}}
+.btn{padding:14px 28px;border:none;border-radius:12px;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+.btn-primary{background:linear-gradient(135deg,var(--primary),#8b5cf6);color:white;width:100%;box-shadow:0 4px 20px rgba(108,99,255,.4);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(108,99,255,.5);}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--primary);}
+.btn-nav{display:flex;gap:12px;margin-top:24px;}
+.btn-nav .btn-secondary{flex:0 0 auto;}
+.btn-nav .btn-primary{flex:1;}
+.btn-cta{background:linear-gradient(135deg,var(--green),#00b377);color:white;width:100%;font-size:1.1rem;padding:18px 32px;box-shadow:0 4px 24px rgba(0,214,143,.4);}
+.btn-cta:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(0,214,143,.5);}
+.btn-cal{background:linear-gradient(135deg,#ff6584,#e94560);color:white;width:100%;margin-top:12px;box-shadow:0 4px 20px rgba(255,101,132,.4);}
+.btn-cal:hover{transform:translateY(-2px);}
+.results-hero{text-align:center;padding:20px 0 32px;}
+.rank-display{width:140px;height:140px;border-radius:50%;margin:0 auto 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+.rank-score{font-size:3rem;font-weight:900;line-height:1;}
+.rank-sub{font-size:.8rem;font-weight:600;opacity:.8;}
+.rank-display::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:3px solid;animation:spin 4s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.rank-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:999px;font-weight:800;font-size:1rem;margin-bottom:16px;}
+.final-xp{font-size:2rem;font-weight:900;color:var(--gold);margin-bottom:4px;}
+.final-xp-label{font-size:.85rem;color:var(--text-muted);}
+.badges-section{margin:28px 0;}
+.badges-section h3{font-size:1rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:12px;}
+.badge-item{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:14px 8px;text-align:center;transition:all .3s;}
+.badge-item.earned{border-color:var(--gold);background:rgba(255,215,0,.08);box-shadow:0 0 16px rgba(255,215,0,.2);animation:badgePop .5s ease;}
+@keyframes badgePop{0%{transform:scale(.5);}70%{transform:scale(1.2);}100%{transform:scale(1);}}
+.badge-icon{font-size:1.8rem;margin-bottom:6px;}
+.badge-name{font-size:.65rem;font-weight:700;color:var(--text-muted);line-height:1.3;}
+.badge-item.earned .badge-name{color:var(--gold);}
+.badge-item:not(.earned){opacity:.3;filter:grayscale(1);}
+.dim-results{margin:24px 0;}
+.dim-result-item{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.dim-result-icon{font-size:1.3rem;flex-shrink:0;width:28px;text-align:center;}
+.dim-result-info{flex:1;}
+.dim-result-name{font-size:.85rem;font-weight:700;margin-bottom:5px;}
+.dim-result-bar-bg{background:var(--border);border-radius:999px;height:10px;}
+.dim-result-bar-fill{height:10px;border-radius:999px;transition:width 1s ease;}
+.dim-result-pct{font-size:.9rem;font-weight:800;min-width:42px;text-align:right;}
+.chart-wrap{background:var(--card2);border-radius:16px;padding:24px;margin:24px 0;border:1px solid var(--border);}
+.chart-wrap h3{font-size:.9rem;font-weight:700;margin-bottom:16px;color:var(--text-muted);}
+.reco-wrap{margin-top:28px;}
+.reco-wrap h3{font-size:1rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.reco-dim-card{background:var(--card2);border-radius:14px;padding:18px;margin-bottom:14px;border:1px solid var(--border);}
+.reco-dim-card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-weight:700;}
+.reco-item{display:flex;gap:8px;font-size:.85rem;color:var(--text-muted);padding:7px 0;border-bottom:1px solid var(--border);line-height:1.5;}
+.reco-item:last-child{border-bottom:none;}
+.reco-item::before{content:'▸';color:var(--primary);flex-shrink:0;font-weight:700;}
+.cta-block{background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(255,101,132,.1));border:1px solid rgba(108,99,255,.3);border-radius:20px;padding:36px;text-align:center;margin-top:24px;}
+.cta-logo{width:56px;height:56px;border-radius:14px;margin:0 auto 16px;display:block;object-fit:contain;}
+.cta-block h3{font-size:1.5rem;font-weight:800;margin-bottom:10px;}
+.cta-block p{color:var(--text-muted);margin-bottom:24px;line-height:1.7;}
+.cta-block .email-note{font-size:.8rem;color:var(--text-muted);margin-top:12px;}
+.cta-block .email-note strong{color:var(--green);}
+.percentile-bar{background:var(--card2);border-radius:14px;padding:20px;margin:24px 0;border:1px solid var(--border);}
+.percentile-bar h4{font-size:.85rem;color:var(--text-muted);margin-bottom:12px;}
+.perc-track{position:relative;height:28px;background:var(--border);border-radius:999px;}
+.perc-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--secondary),var(--primary),var(--green));transition:width 1.5s ease;}
+.perc-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:white;border:3px solid var(--primary);box-shadow:0 0 10px rgba(108,99,255,.8);transition:left 1.5s ease;}
+.perc-label{text-align:center;margin-top:10px;font-size:.85rem;color:var(--text-muted);}
+.perc-label strong{color:var(--primary);font-size:1.1rem;}
+.notif{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;padding:14px 24px;border-radius:12px;font-weight:700;font-size:.9rem;box-shadow:0 4px 24px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+.notif.show{opacity:1;}
+@media(max-width:560px){.hero h1{font-size:1.8rem;}.form-row{grid-template-columns:1fr;}.card{padding:24px 18px;}.hud-stats{gap:10px;}}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="combo-toast" id="comboToast"></div>
+
+<div class="hud">
+  <div class="hud-brand">
+    <img class="hud-logo" src="logo.png" alt="Logo" onerror="this.style.display='none'"/>
+    <span>Digital Quest</span>
+  </div>
+  <div class="hud-stats">
+    <div class="hud-stat"><span>⭐</span><span class="val" id="hudXP">0</span><span style="color:var(--text-muted);font-size:.75rem">XP</span></div>
+    <div class="hud-stat"><span>🔥</span><span class="val" id="hudCombo">0</span><span style="color:var(--text-muted);font-size:.75rem">combo</span></div>
+    <div class="xp-bar-container">
+      <div class="xp-label"><span id="xpLevelLabel">Débutant</span><span id="xpPct">0%</span></div>
+      <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="section active" id="sec-0">
+    <div class="hero">
+      <div class="hero-badge">🌟 Diagnostic Gratuit · Rapport Personnalisé</div>
+      <img src="logo.png" alt="Logo" class="hero-logo" onerror="this.style.fontSize='3rem';this.style.display='flex';this.replaceWith(Object.assign(document.createElement('div'),{className:'hero-logo',style:'display:flex;align-items:center;justify-content:center;font-size:3rem;width:80px;height:80px;background:linear-gradient(135deg,#6c63ff,#ff6584);border-radius:20px;margin:0 auto 20px',textContent:'⚡'}))"/>
+      <h1>Quelle est la maturité digitale de votre entreprise ?</h1>
+      <p>Partez en mission pour analyser 5 dimensions clés, débloquez des badges, et recevez votre rapport d'expert personnalisé. 10 minutes pour tout changer.</p>
+    </div>
+    <div class="card">
+      <div class="mission-card">
+        <div class="mission-icon">🎮</div>
+        <div class="mission-text">
+          <h4>🚀 Votre mission</h4>
+          <p>25 questions, 5 dimensions. Chaque réponse vous rapporte des XP. Débloquez des badges et positionnez-vous parmi les entreprises de votre secteur.</p>
+        </div>
+      </div>
+      <div class="form-group"><label>👤 Prénom & Nom *</label><input type="text" id="userName" placeholder="Jean Dupont"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>📧 Email *</label><input type="email" id="userEmail" placeholder="jean@entreprise.com"/></div>
+        <div class="form-group"><label>🏢 Entreprise *</label><input type="text" id="userCompany" placeholder="Ma Société"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>🏭 Secteur</label>
+          <select id="userSector">
+            <option value="">Choisir...</option>
+            <option>Industrie / Manufacturing</option><option>Commerce & Distribution</option>
+            <option>Services aux entreprises</option><option>Banque / Finance / Assurance</option>
+            <option>Santé</option><option>Éducation & Formation</option>
+            <option>Immobilier & Construction</option><option>Transport & Logistique</option>
+            <option>Tourisme & Hôtellerie</option><option>Autre</option>
+          </select>
+        </div>
+        <div class="form-group"><label>👥 Taille</label>
+          <select id="userSize">
+            <option value="">Choisir...</option>
+            <option>1–10 (TPE)</option><option>11–50 (PE)</option>
+            <option>51–250 (PME)</option><option>251–1000 (ETI)</option><option>+1000 (Grande entreprise)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>💼 Votre poste</label>
+        <select id="userRole">
+          <option value="">Choisir...</option>
+          <option>Dirigeant / CEO</option><option>DSI / CTO / CDO</option>
+          <option>Directeur Marketing</option><option>Directeur Opérations</option>
+          <option>Responsable Transformation Digitale</option><option>Manager / Chef de projet</option>
+          <option>Consultant</option><option>Autre</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="startGame()">⚡ Lancer ma mission</button>
+    </div>
+  </div>
+
+  <div id="questionSections"></div>
+
+  <div class="section" id="sec-results">
+    <div class="card" id="resultsCard"></div>
+    <div class="cta-block">
+      <img src="logo.png" alt="Logo" class="cta-logo" onerror="this.style.display='none'"/>
+      <h3>📞 Passez à l'action avec un expert</h3>
+      <p>Réservez un appel gratuit de 30 min avec un consultant en transformation digitale.<br>Analyse approfondie de vos résultats et feuille de route personnalisée.</p>
+      <button class="btn btn-cta" onclick="openCalendly()">📅 Réserver mon appel gratuit</button>
+      <button class="btn btn-cal" onclick="downloadReport()">📄 Télécharger mon rapport PDF</button>
+      <p class="email-note">✉️ Rapport envoyé à <strong id="emailDisplay">—</strong></p>
+    </div>
+  </div>
+</main>
+
+<div class="notif" id="notif"></div>
+<script>
+// =====================================================
+// DONNÉES & CONFIG
+// =====================================================
+const CALENDLY_URL = 'https://calendly.com/votre-lien'; // Remplacer par votre lien Calendly
+
+const XP_LEVELS = [
+  {min:0,max:200,label:'Débutant',color:'#8888aa'},
+  {min:200,max:400,label:'Initié',color:'#6c63ff'},
+  {min:400,max:600,label:'Explorateur',color:'#ff9f43'},
+  {min:600,max:800,label:'Expert',color:'#00d68f'},
+  {min:800,max:1000,label:'Champion',color:'#ffd700'},
+  {min:1000,max:99999,label:'Pionnier Digital',color:'#ff6584'}
+];
+
+const ALL_BADGES = [
+  {id:'speed',icon:'⚡',name:'Quick Thinker',desc:'Complété en moins de 7 min'},
+  {id:'perfect_strategy',icon:'🎯',name:'Stratège',desc:'100% en Stratégie'},
+  {id:'perfect_data',icon:'🧬',name:'Data Wizard',desc:'100% en Données & IA'},
+  {id:'perfect_customer',icon:'🌟',name:'CX Champion',desc:'100% en Expérience Client'},
+  {id:'perfect_process',icon:'⚙️',name:'Automatiseur',desc:'100% en Processus'},
+  {id:'perfect_culture',icon:'🧠',name:'Change Maker',desc:'100% en Culture'},
+  {id:'pioneer',icon:'🚀',name:'Digital Pioneer',desc:'Score global > 80'},
+  {id:'combo5',icon:'🔥',name:'En feu !',desc:'5 réponses max de suite'},
+  {id:'all_answered',icon:'✅',name:'Complétiste',desc:'Toutes les questions répondues'},
+  {id:'first_time',icon:'🎖️',name:'Pionnier',desc:'Premier diagnostic'}
+];
+
+const DIMS = [
+  {id:'strategy',name:'Stratégie & Leadership',icon:'🎯',color:'#6c63ff',glow:'rgba(108,99,255,.5)',
+   mission:"Analysez l'engagement digital de votre direction.",
+   questions:[
+    "Votre entreprise dispose d'une vision digitale formalisée et partagée par la direction.",
+    "Le digital est pleinement intégré dans la stratégie globale de l'entreprise.",
+    "Un budget dédié à la transformation digitale est alloué chaque année.",
+    "Un responsable de la transformation (CDO/DSI) dispose d'un pouvoir de décision réel.",
+    "Des KPIs de maturité digitale sont suivis régulièrement en CODIR."
+   ],
+   recos:["Formaliser une charte digitale validée en CODIR avec objectifs mesurables à 3 ans.",
+    "Nommer un Chief Digital Officer avec budget propre et accès CODIR.",
+    "Mettre en place un dashboard trimestriel des KPIs digitaux présenté en CODIR.",
+    "Lancer un programme de sensibilisation au digital pour les membres du CODIR.",
+    "Aligner la roadmap digitale sur la stratégie d'entreprise à 5 ans."]},
+  {id:'customer',name:'Expérience Client',icon:'🤝',color:'#ff6584',glow:'rgba(255,101,132,.5)',
+   mission:"Évaluez la qualité des interactions digitales avec vos clients.",
+   questions:[
+    "Les parcours clients sont entièrement digitaux (commande, support, suivi).",
+    "La présence en ligne (site, app, réseaux sociaux) est active et cohérente.",
+    "Les retours clients sont collectés et analysés en temps réel via des outils digitaux.",
+    "La personnalisation de l'expérience client est pratiquée activement.",
+    "Des outils CRM modernes et interconnectés sont déployés et utilisés."
+   ],
+   recos:["Cartographier les parcours clients et digitaliser les étapes manuelles restantes.",
+    "Déployer un CRM adapté à votre taille (HubSpot, Zoho, Salesforce).",
+    "Lancer une enquête NPS digitale en continu sur tous les canaux.",
+    "Refondre le site web comme premier canal de conversion avec UX optimisée.",
+    "Intégrer un chatbot ou support en ligne pour réduire les délais de réponse."]},
+  {id:'data',name:'Données & IA',icon:'📊',color:'#00d68f',glow:'rgba(0,214,143,.5)',
+   mission:"Mesurez la maturité de votre exploitation de la donnée.",
+   questions:[
+    "Les données clés sont centralisées dans un entrepôt de données unifié.",
+    "Des tableaux de bord en temps réel guident la prise de décision des managers.",
+    "Des algorithmes prédictifs ou de l'IA sont actifs en production (pas juste en POC).",
+    "La gouvernance des données (qualité, sécurité, RGPD) est formalisée.",
+    "Les équipes métiers utilisent des outils self-service d'analytics."
+   ],
+   recos:["Réaliser un inventaire des données et définir une stratégie data à 12 mois.",
+    "Déployer un outil BI accessible aux métiers (Power BI, Tableau, Looker Studio).",
+    "Former des data ambassadeurs dans chaque département.",
+    "Mettre en conformité RGPD avec un registre de traitements formalisé.",
+    "Lancer un premier projet IA à valeur rapide (prédiction churn, scoring leads…)."]},
+  {id:'process',name:'Processus & Automatisation',icon:'⚙️',color:'#ff9f43',glow:'rgba(255,159,67,.5)',
+   mission:"Analysez le niveau de digitalisation de vos opérations.",
+   questions:[
+    "Les processus clés (RH, Finance, Supply Chain) sont digitalisés de bout en bout.",
+    "Des outils d'automatisation sont utilisés (RPA, workflow automation, no-code).",
+    "Le cloud est le mode d'hébergement principal des applications de l'entreprise.",
+    "Les applications métier sont interconnectées (API, ERP, intégrations natives).",
+    "Le cycle de livraison IT est agile (DevOps, releases fréquentes, CI/CD)."
+   ],
+   recos:["Cartographier les processus manuels répétitifs et automatiser les 3 premiers.",
+    "Évaluer et déployer un outil no-code/RPA (Make, Power Automate, Zapier).",
+    "Lancer un plan de migration cloud sur 18 mois pour les applications critiques.",
+    "Cartographier l'écosystème applicatif et connecter les silos via API.",
+    "Former les équipes IT aux pratiques DevOps et réduire les cycles de livraison."]},
+  {id:'culture',name:'Culture & Compétences',icon:'🧠',color:'#a78bfa',glow:'rgba(167,139,250,.5)',
+   mission:"Évaluez l'ADN digital humain de votre organisation.",
+   questions:[
+    "Les collaborateurs sont formés régulièrement aux outils et usages digitaux.",
+    "L'entreprise favorise l'expérimentation et accepte l'échec comme apprentissage.",
+    "Les équipes travaillent en mode cross-fonctionnel sur les projets digitaux.",
+    "Le recrutement intègre des critères de compétences digitales explicites.",
+    "La résistance au changement est activement gérée (change management structuré)."
+   ],
+   recos:["Déployer un plan de formation digitale personnalisé par métier sur 12 mois.",
+    "Créer un programme d'intrapreneuriat ou hackathon interne pour stimuler l'innovation.",
+    "Mettre en place un réseau de digital champions dans chaque département.",
+    "Formaliser une politique de change management avec sponsors et relais identifiés.",
+    "Revoir les fiches de poste pour intégrer les compétences digitales attendues."]}
+];
+
+// =====================================================
+// STATE
+// =====================================================
+let currentSection = 0;
+let answers = {};
+let userData = {};
+let totalXP = 0;
+let comboCount = 0;
+let maxCombo = 0;
+let earnedBadges = new Set();
+let startTime = 0;
+
+// =====================================================
+// STARS BACKGROUND
+// =====================================================
+function createStars(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2.5+.5;
+    s.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-duration:'+(Math.random()*4+2)+'s;animation-delay:'+(-Math.random()*4)+'s;';
+    c.appendChild(s);
+  }
+}
+
+// =====================================================
+// XP SYSTEM
+// =====================================================
+function updateXPBar(){
+  const level=XP_LEVELS.find(l=>totalXP>=l.min&&totalXP<l.max)||XP_LEVELS[XP_LEVELS.length-1];
+  const next=XP_LEVELS[XP_LEVELS.indexOf(level)+1];
+  const pct=next?Math.round(((totalXP-level.min)/(next.min-level.min))*100):100;
+  document.getElementById('hudXP').textContent=totalXP;
+  document.getElementById('hudCombo').textContent=comboCount;
+  document.getElementById('xpLevelLabel').textContent=level.label;
+  document.getElementById('xpPct').textContent=pct+'%';
+  document.getElementById('xpBarFill').style.width=pct+'%';
+}
+
+function addXP(amount,x,y){
+  totalXP+=amount;
+  updateXPBar();
+  const popup=document.createElement('div');
+  popup.className='xp-popup';
+  popup.style.cssText='position:fixed;left:'+(x||window.innerWidth/2)+'px;top:'+(y||200)+'px;font-weight:800;font-size:1.2rem;color:#ffd700;pointer-events:none;z-index:9999;animation:floatUp 1.2s ease forwards;';
+  popup.textContent='+'+amount+' XP';
+  document.body.appendChild(popup);
+  if(!document.querySelector('#xpAnim')){
+    const st=document.createElement('style');
+    st.id='xpAnim';
+    st.textContent='@keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-60px);}}';
+    document.head.appendChild(st);
+  }
+  setTimeout(()=>popup.remove(),1200);
+}
+
+// =====================================================
+// BUILD QUESTIONNAIRE
+// =====================================================
+function buildQuestionnaire(){
+  const container=document.getElementById('questionSections');
+  DIMS.forEach((dim,di)=>{
+    const sec=document.createElement('div');
+    sec.className='section';
+    sec.id='sec-'+(di+1);
+    let qs='';
+    dim.questions.forEach((q,qi)=>{
+      const key=dim.id+'_'+qi;
+      const labels=['Pas du tout','Peu','Partiellement','Souvent','Totalement'];
+      qs+='<div class="question-block" id="qb_'+key+'">';
+      qs+='<div class="q-header"><span class="q-num">Q'+(di*5+qi+1)+'/25</span><span class="q-pts">+40 XP</span></div>';
+      qs+='<p class="q-text">'+q+'</p>';
+      qs+='<div class="options-grid">';
+      for(let v=0;v<5;v++){
+        const cls=v<=1?'low':v>=3?'high':'';
+        qs+='<button class="opt-btn '+cls+'" onclick="selectOption(event,''+key+'','+v+')"><span class="opt-val">'+v+'</span><span class="opt-lbl">'+labels[v]+'</span></button>';
+      }
+      qs+='</div></div>';
+    });
+    sec.innerHTML='<div class="card"><div class="dim-header"><div class="dim-orb" style="background:linear-gradient(135deg,'+dim.color+'33,'+dim.color+'66);box-shadow:0 0 20px '+dim.glow+'">'+dim.icon+'</div><div class="dim-header-info"><h2 style="color:'+dim.color+'">'+dim.name+'</h2><p>Dimension '+(di+1)+'/5 · '+dim.mission+'</p></div></div><div class="mission-progress"><div class="prog-info"><div class="prog-label">Progression globale</div><div class="prog-bar-bg"><div class="prog-bar-fill" style="width:'+(di*20)+'%"></div></div></div><div class="prog-pts">'+totalXP+' XP</div></div>'+qs+'<div class="btn-nav">'+(di>0?'<button class="btn btn-secondary" onclick="goTo('+(di)+')">← Retour</button>':'')+'<button class="btn btn-primary" onclick="nextDimension('+(di+1)+')">'+( di<4?'Dimension suivante →':'🎉 Voir mes résultats')+'</button></div></div>';
+    container.appendChild(sec);
+  });
+}
+
+// =====================================================
+// NAVIGATION
+// =====================================================
+function goTo(idx){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(idx==='results'?'sec-results':'sec-'+idx).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function startGame(){
+  const name=document.getElementById('userName').value.trim();
+  const email=document.getElementById('userEmail').value.trim();
+  const company=document.getElementById('userCompany').value.trim();
+  if(!name||!email||!company){showNotif('⚠️ Merci de remplir les champs obligatoires.','#e94560');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showNotif('⚠️ Email invalide.','#e94560');return;}
+  userData={name,email,company,
+    sector:document.getElementById('userSector').value||'Non renseigné',
+    size:document.getElementById('userSize').value||'Non renseigné',
+    role:document.getElementById('userRole').value||'Non renseigné'};
+  startTime=Date.now();
+  earnBadge('first_time');
+  goTo(1);
+  showNotif('🚀 Mission lancée ! Bonne chance '+name+' !','#6c63ff');
+}
+
+// =====================================================
+// ANSWER SELECTION
+// =====================================================
+function selectOption(e,key,val){
+  const wasAnswered=answers[key]!==undefined;
+  answers[key]=val;
+  const qb=document.getElementById('qb_'+key);
+  qb.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+  e.currentTarget.classList.add('selected');
+  qb.classList.add('answered');
+  if(!wasAnswered){
+    const xpEarned=val>=3?50:val>=2?40:30;
+    addXP(xpEarned,e.clientX,e.clientY);
+    if(val===4){comboCount++;if(comboCount>maxCombo)maxCombo=comboCount;updateXPBar();if(comboCount>=3)showCombo();}
+    else{comboCount=0;updateXPBar();}
+  }
+}
+
+function showCombo(){
+  const t=document.getElementById('comboToast');
+  const msgs=['🔥 COMBO x'+comboCount,'⚡ INCROYABLE x'+comboCount,'🚀 ON FIRE x'+comboCount,'💥 COMBO x'+comboCount];
+  t.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+  if(comboCount>=5)earnBadge('combo5');
+}
+
+function nextDimension(dimIdx){
+  const dim=DIMS[dimIdx-1];
+  const unanswered=dim.questions.filter((_,i)=>answers[dim.id+'_'+i]===undefined);
+  if(unanswered.length>0){showNotif('⚠️ '+unanswered.length+' question(s) sans réponse !','#e94560');return;}
+  if(dimIdx<5){goTo(dimIdx+1);}
+  else{computeResults();}
+}
+
+// =====================================================
+// COMPUTE RESULTS
+// =====================================================
+function computeResults(){
+  const scores={};
+  let total=0;
+  DIMS.forEach(dim=>{
+    let sum=0;
+    dim.questions.forEach((_,i)=>{sum+=answers[dim.id+'_'+i]||0;});
+    scores[dim.id]=Math.round((sum/(dim.questions.length*4))*100);
+    total+=scores[dim.id];
+    if(scores[dim.id]===100)earnBadge('perfect_'+dim.id);
+  });
+  const global=Math.round(total/DIMS.length);
+  if(global>80)earnBadge('pioneer');
+  earnBadge('all_answered');
+  const elapsed=(Date.now()-startTime)/60000;
+  if(elapsed<7)earnBadge('speed');
+  renderResults(scores,global);
+  goTo('results');
+  launchConfetti();
+}
+
+function getLevel(s){
+  if(s<=20)return{label:'Initial 🌱',color:'#ef4444',bg:'rgba(239,68,68,.15)',border:'#ef4444'};
+  if(s<=40)return{label:'Émergent 🔶',color:'#f97316',bg:'rgba(249,115,22,.15)',border:'#f97316'};
+  if(s<=60)return{label:'Structuré 🔷',color:'#f59e0b',bg:'rgba(245,158,11,.15)',border:'#f59e0b'};
+  if(s<=80)return{label:'Avancé 💎',color:'#3b82f6',bg:'rgba(59,130,246,.15)',border:'#3b82f6'};
+  return{label:'Pionnier 🚀',color:'#00d68f',bg:'rgba(0,214,143,.15)',border:'#00d68f'};
+}
+
+// =====================================================
+// RENDER RESULTS
+// =====================================================
+function renderResults(scores,global){
+  const lv=getLevel(global);
+  document.getElementById('emailDisplay').textContent=userData.email;
+  const card=document.getElementById('resultsCard');
+  
+  let dimBars='';
+  DIMS.forEach(d=>{
+    const s=scores[d.id];
+    dimBars+='<div class="dim-result-item"><div class="dim-result-icon">'+d.icon+'</div><div class="dim-result-info"><div class="dim-result-name">'+d.name+'</div><div class="dim-result-bar-bg"><div class="dim-result-bar-fill" style="width:0%;background:'+d.color+'" id="bar_'+d.id+'"></div></div></div><div class="dim-result-pct" style="color:'+d.color+'">'+s+'%</div></div>';
+  });
+
+  let badgesHtml='<div class="badges-section"><h3>🏆 Badges débloqués ('+earnedBadges.size+'/'+ALL_BADGES.length+')</h3><div class="badges-grid">';
+  ALL_BADGES.forEach(b=>{
+    const earned=earnedBadges.has(b.id);
+    badgesHtml+='<div class="badge-item'+(earned?' earned':'')+'"><div class="badge-icon">'+b.icon+'</div><div class="badge-name">'+b.name+'</div></div>';
+  });
+  badgesHtml+='</div></div>';
+
+  let recos='<div class="reco-wrap"><h3>🎯 Plan d\'action prioritaire</h3>';
+  DIMS.filter(d=>scores[d.id]<70).slice(0,3).forEach(d=>{
+    const topRecos=d.recos.slice(0,3);
+    recos+='<div class="reco-dim-card"><div class="reco-dim-card-header" style="color:'+d.color+'">'+d.icon+' '+d.name+' — '+scores[d.id]+'%</div>';
+    topRecos.forEach(r=>{recos+='<div class="reco-item">'+r+'</div>';});
+    recos+='</div>';
+  });
+  if(DIMS.filter(d=>scores[d.id]<70).length===0)recos+='<div style="color:#00d68f;font-weight:700;text-align:center;padding:20px">🏆 Félicitations ! Maturité digitale excellente sur toutes les dimensions !</div>';
+  recos+='</div>';
+
+  let percentile=Math.min(95,Math.max(5,global));
+
+  card.innerHTML='<div class="results-hero"><div class="rank-display" style="background:'+lv.bg+';border:3px solid '+lv.border+'"><span class="rank-score" style="color:'+lv.color+'">'+global+'</span><span class="rank-sub" style="color:'+lv.color+'">/100</span></div><div class="rank-badge" style="background:'+lv.bg+';color:'+lv.color+'">'+lv.label+'</div><div class="final-xp">'+totalXP+' XP</div><div class="final-xp-label">accumulés · Combo max : '+maxCombo+'</div><p style="color:var(--text-muted);margin-top:8px">'+userData.name+' · '+userData.company+'</p></div>'+badgesHtml+'<div class="dim-results">'+dimBars+'</div><div class="chart-wrap"><h3>📡 Radar de maturité</h3><canvas id="radarChart" height="300"></canvas></div><div class="percentile-bar"><h4>📊 Votre position parmi les entreprises diagnostiquées</h4><div class="perc-track"><div class="perc-fill" style="width:0%" id="percFill"></div><div class="perc-marker" style="left:0%" id="percMarker"></div></div><div class="perc-label">Vous êtes dans le <strong id="percLabel">—</strong> des entreprises diagnostiquées</div></div>'+recos;
+
+  setTimeout(()=>{
+    DIMS.forEach(d=>{
+      const el=document.getElementById('bar_'+d.id);
+      if(el)el.style.width=scores[d.id]+'%';
+    });
+    document.getElementById('percFill').style.width=percentile+'%';
+    document.getElementById('percMarker').style.left=percentile+'%';
+    document.getElementById('percLabel').textContent='top '+(100-percentile)+'%';
+    const ctx=document.getElementById('radarChart').getContext('2d');
+    new Chart(ctx,{type:'radar',data:{labels:DIMS.map(d=>d.name),datasets:[{label:'Votre score',data:DIMS.map(d=>scores[d.id]),backgroundColor:'rgba(108,99,255,.15)',borderColor:'#6c63ff',borderWidth:2,pointBackgroundColor:DIMS.map(d=>d.color),pointRadius:6,pointHoverRadius:8}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{stepSize:20,font:{size:10},color:'#666',backdropColor:'transparent'},grid:{color:'rgba(255,255,255,.05)'},pointLabels:{color:'#e8e8f0',font:{size:11,weight:'bold'}},angleLines:{color:'rgba(255,255,255,.05)'}}},plugins:{legend:{display:false}}}});
+  },300);
+}
+
+// =====================================================
+// BADGES
+// =====================================================
+function earnBadge(id){
+  if(earnedBadges.has(id))return;
+  earnedBadges.add(id);
+  const b=ALL_BADGES.find(x=>x.id===id);
+  if(b)showNotif(b.icon+' Badge débloqué : '+b.name+'!','#ffd700');
+}
+
+// =====================================================
+// CONFETTI
+// =====================================================
+function launchConfetti(){
+  if(typeof confetti==='undefined')return;
+  confetti({particleCount:120,spread:80,origin:{y:.6},colors:['#6c63ff','#ff6584','#ffd700','#00d68f']});
+  setTimeout(()=>confetti({particleCount:60,spread:120,origin:{y:.5},colors:['#a78bfa','#ff9f43','#00d68f']}),600);
+}
+
+// =====================================================
+// UI HELPERS
+// =====================================================
+function showNotif(msg,color){
+  const n=document.getElementById('notif');
+  n.textContent=msg;
+  n.style.background=color||'#6c63ff';
+  n.style.color='white';
+  n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),3000);
+}
+
+function openCalendly(){
+  window.open(CALENDLY_URL,'_blank');
+}
+
+function downloadReport(){
+  showNotif('📄 Fonctionnalité PDF disponible avec EmailJS configuré','#ff9f43');
+}
+
+// =====================================================
+// INIT
+// =====================================================
+createStars();
+buildQuestionnaire();
+</script>
+</body>
+</html>
